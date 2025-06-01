@@ -10,7 +10,7 @@ class NetworkUtil {
       _logger.info('Network connectivity checked');
     } catch (e) {
       _logger.severe('Network check failed: $e');
-      throw NetworkException('Failed to check connectivity');
+      throw NetworkException();
     }
   }
 }
