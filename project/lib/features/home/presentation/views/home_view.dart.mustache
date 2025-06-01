@@ -12,11 +12,13 @@ class HomeView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Home')),
-      body: Obx(() => LazyLoadingList(
-            items: viewModel.items,
-            isLoading: viewModel.isLoading.value,
-            onLoadMore: viewModel.fetchData,
-          )),
+      body: Obx(
+        () => LazyLoadingList(
+          items: viewModel.items,
+          isLoading: viewModel.isLoading.value,
+          onLoadMore: viewModel.fetchData,
+        ),
+      ),
     );
   }
 }
