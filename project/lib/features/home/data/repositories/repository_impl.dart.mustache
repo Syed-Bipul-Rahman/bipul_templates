@@ -1,37 +1,35 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'home_model.dart';
-import 'home_repository.dart';
-import 'local_data_source.dart';
-import 'remote_data_source.dart';
+import 'package:logging/logging.dart';
+import '../../domain/entities/home_entity.dart';
+import '../../domain/repositories/repository.dart';
+import '../datasources/local_data_source.dart';
+import '../datasources/remote_data_source.dart';
+import '../models/home_model.dart';
 
 class HomeRepositoryImpl implements HomeRepository {
-final HomeRemoteDataSource remoteDataSource;
-final HomeLocalDataSource localDataSource;
-final Connectivity connectivity;
+  final HomeLocalDataSource localDataSource;
+  final HomeRemoteDataSource remoteDataSource;
+  final Logger _logger = Logger('HomeRepositoryImpl');
 
-HomeRepositoryImpl({
-required this.remoteDataSource,
-required this.localDataSource,
-required this.connectivity,
-});
+  HomeRepositoryImpl({
+    required this.localDataSource,
+    required this.remoteDataSource,
+  });
 
-@override
-Future<List<HomeModel>> getItems(int page, int limit) async {
-    final connectivityResult = await connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-    return localDataSource.getCachedItems();
-    } else {
-    final items = await remoteDataSource.getItems(page, limit);
-    await localDataSource.cacheItems(items);
-    return items;
+  @override
+  Future<List<HomeEntity>> getData(int page) async {
+    try {
+      final data = await remoteDataSource.fetchData('https://api.example.com?page=$page');
+      await localDataSource.cacheData('home_data_$page', data);
+      _logger.info('Data fetched and cached for page $page');
+      return [HomeModel(id: '1', title: 'Sample', description: 'Sample Desc').toEntity()];
+    } catch (e) {
+      _logger.severe('Error fetching data: $e');
+      final cachedData = await localDataSource.getCachedData('home_data_$page');
+      if (cachedData != null) {
+        _logger.info('Returning cached data for page $page');
+        return [HomeModel(id: '1', title: 'Cached', description: 'Cached Desc').toEntity()];
+      }
+      rethrow;
     }
-    }
-    }
-
-    final homeRepositoryProvider = Provider<HomeRepository>(
-        (ref) => HomeRepositoryImpl(
-        remoteDataSource: ref.read(homeRemoteDataSourceProvider),
-        localDataSource: ref.read(homeLocalDataSourceProvider),
-        connectivity: Connectivity(),
-        ),
-        );
+  }
+}

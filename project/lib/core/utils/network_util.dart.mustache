@@ -1,11 +1,16 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+import '../exceptions/network_exception.dart';
 
 class NetworkUtil {
-final String baseUrl = "https://api.example.com ";
+  static final Logger _logger = Logger('NetworkUtil');
 
-Future<Map<String, dynamic>> get(String endpoint) async {
-final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
-return json.decode(response.body);
-}
+  static Future<void> checkConnectivity() async {
+    try {
+      // Placeholder for connectivity check
+      _logger.info('Network connectivity checked');
+    } catch (e) {
+      _logger.severe('Network check failed: $e');
+      throw NetworkException('Failed to check connectivity');
+    }
+  }
 }

@@ -1,23 +1,23 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logging/logging.dart';
 
 class SharedPreferencesUtil {
-final SharedPreferences _prefs;
+  static final Logger _logger = Logger('SharedPreferencesUtil');
+  late SharedPreferences _prefs;
 
-SharedPreferencesUtil(this._prefs);
+  Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
+    _logger.info('SharedPreferences initialized');
+  }
 
-bool hasKey(String key) => _prefs.containsKey(key);
+  Future<void> setString(String key, String value) async {
+    await _prefs.setString(key, value);
+    _logger.info('Stored $key in SharedPreferences');
+  }
 
-dynamic get(String key) => _prefs.get(key);
-
-void set(String key, dynamic value) {
-if (value is String) {
-_prefs.setString(key, value);
-} else if (value is int) {
-_prefs.setInt(key, value);
-} else if (value is bool) {
-_prefs.setBool(key, value);
-} else if (value is double) {
-_prefs.setDouble(key, value);
-}
-}
+  String? getString(String key) {
+    final value = _prefs.getString(key);
+    _logger.info('Retrieved $key from SharedPreferences');
+    return value;
+  }
 }

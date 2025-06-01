@@ -1,22 +1,27 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'config/di/injector.dart';
 import 'config/routes/app_router.dart';
 import 'config/routes/route_names.dart';
-import 'core/constants/app_constants.dart';
+import 'core/utils/logger.dart';
+import 'shared/theme/app_themes.dart';
 
 void main() {
-setupDependencies();
-runApp(const MyApp());
+  AppLogger.setup();
+  initInjectionContainer();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
-@override
-Widget build(BuildContext context) {
-return MaterialApp(
-title: AppConstants.appName,
-theme: ThemeData.dark(),
-onGenerateRoute: AppRouter.generateRoute,
-initialRoute: RouteNames.home,
-);
-}
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: 'My App',
+      theme: AppThemes.lightTheme,
+      initialRoute: RouteNames.home,
+      getPages: AppRouter.routes,
+    );
+  }
 }

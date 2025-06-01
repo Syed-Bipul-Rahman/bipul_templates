@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:{{project_name}}/core/constants/app_constants.dart.mustache';
+import 'package:get/get.dart';
+import '../viewmodels/home_viewmodel.dart';
+import '../widgets/lazy_loading_list.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class HomeView extends StatelessWidget {
+  const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const HomePage(),
+    final HomeViewModel viewModel = Get.find();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Home')),
+      body: Obx(() => LazyLoadingList(
+            items: viewModel.items,
+            isLoading: viewModel.isLoading.value,
+            onLoadMore: viewModel.fetchData,
+          )),
     );
   }
 }

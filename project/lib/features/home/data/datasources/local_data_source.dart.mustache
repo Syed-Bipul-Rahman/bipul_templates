@@ -1,20 +1,30 @@
-abstract class HomeLocalDataSource {
-Future<List<HomeModel>> getCachedItems();
-    Future<void> cacheItems(List<HomeModel> items);
-        }
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logging/logging.dart';
 
-        class HomeLocalDataSourceImpl implements HomeLocalDataSource {
-        // Simulated local storage (e.g., SharedPreferences, Hive, or SQLite)
-        final List<HomeModel> _cache = [];
+class HomeLocalDataSource {
+  final SharedPreferences sharedPreferences;
+  final Logger _logger = Logger('HomeLocalDataSource');
 
-            @override
-            Future<List<HomeModel>> getCachedItems() async {
-                return _cache;
-                }
+  HomeLocalDataSource({required this.sharedPreferences});
 
-                @override
-                Future<void> cacheItems(List<HomeModel> items) async {
-                    _cache.clear();
-                    _cache.addAll(items);
-                    }
-                    }
+  Future<void> cacheData(String key, String data) async {
+    try {
+      await sharedPreferences.setString(key, data);
+      _logger.info('Data cached for key: $key');
+    } catch (e) {
+      _logger.severe('Error caching data: $e');
+      rethrow;
+    }
+  }
+
+  Future<String?> getCachedData(String key) async {
+    try {
+      final data = sharedPreferences.getString(key);
+      _logger.info('Retrieved cached data for key: $key');
+      return data;
+    } catch (e) {
+      _logger.severe('Error retrieving cached data: $e');
+      rethrow;
+    }
+  }
+}
