@@ -1,9 +1,43 @@
-import 'package:get_it/get_it.dart';
-import 'package:{{project_name}}/features/home/presentation/viewmodels/home_viewmodel.dart';
+import 'package:get/get.dart';
+import '../../core/utils/cache_manager.dart';
+import '../../core/utils/shared_preferences_util.dart';
+import '../../features/home/data/datasources/local_data_source.dart';
+import '../../features/home/data/datasources/remote_data_source.dart';
+import '../../features/home/data/providers/pagination_provider.dart';
+import '../../features/home/data/repositories/repository_impl.dart';
+import '../../features/home/domain/usecases/home_usecase.dart';
+import '../../features/home/presentation/viewmodels/home_viewmodel.dart';
+import '../routes/app_router.dart';
 
-final injector = GetIt.instance;
+class Injector {
+  static void init() {
+    // Utils
+    Get.lazyPut(() => SharedPreferencesUtil(), fenix: true);
+    Get.lazyPut(() => CustomCacheManager(), fenix: true);
 
-Future<void> setupDependencies() async {
-    // Home Feature
-    injector.registerLazySingleton(() => HomeViewModel());
-    }
+    // Data Sources
+    Get.lazyPut(() => HomeLocalDataSource(sharedPreferences: Get.find()), fenix: true);
+    Get.lazyPut(() => HomeRemoteDataSource(cacheManager: Get.find()), fenix: true);
+
+    // Providers
+    Get.lazyPut(() => PaginationProvider(), fenix: true);
+
+    // Repositories
+    Get.lazyPut(() => HomeRepositoryImpl(
+          localDataSource: Get.find(),
+          remoteDataSource: Get.find(),
+        ), fenix: true);
+
+    // Use Cases
+    Get.lazyPut(() => HomeUseCase(repository: Get.find()), fenix: true);
+
+    // ViewModels
+    Get.lazyPut(() => HomeViewModel(
+          useCase: Get.find(),
+          paginationProvider: Get.find(),
+        ), fenix: true);
+
+    // Router
+    Get.lazyPut(() => AppRouter(), fenix: true);
+  }
+}

@@ -1,39 +1,39 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'get_home_items.dart';
-import 'home_model.dart';
+import 'package:get/get.dart';
+import 'package:logging/logging.dart';
+import '../../domain/usecases/home_usecase.dart';
+import '../data/providers/pagination_provider.dart';
+import '../../domain/entities/home_entity.dart';
 
-class HomeViewModel extends StateNotifier<AsyncValue<List<HomeModel>>> {
-    final GetHomeItems getHomeItems;
-    int _currentPage = 1;
-    final int _limit = 10;
+class HomeViewModel extends GetxController {
+  final HomeUseCase useCase;
+  final PaginationProvider paginationProvider;
+  final Logger _logger = Logger('HomeViewModel');
 
-    HomeViewModel(this.getHomeItems) : super(const AsyncValue.data([]));
+  final RxList<HomeEntity> items = <HomeEntity>[].obs;
+  final RxBool isLoading = false.obs;
 
-    Future<void> fetchItems({bool isRefresh = false}) async {
-        if (state.isLoading) return;
+  HomeViewModel({required this.useCase, required this.paginationProvider});
 
-        if (isRefresh) {
-        _currentPage = 1;
-        state = const AsyncValue.data([]);
-        }
+  Future<void> fetchData() async {
+    if (paginationProvider.isLoading || !paginationProvider.hasMore) return;
 
-        state = const AsyncValue.loading();
-        final result = await getHomeItems(_currentPage, _limit);
+    try {
+      paginationProvider.setLoading(true);
+      final data = await useCase.execute(paginationProvider.currentPage);
+      items.addAll(data);
+      paginationProvider.incrementPage();
+      _logger.info('Data fetched for page ${paginationProvider.currentPage}');
+    } catch (e) {
+      _logger.severe('Error fetching data: $e');
+      paginationProvider.setHasMore(false);
+    } finally {
+      paginationProvider.setLoading(false);
+    }
+  }
 
-        result.fold(
-        (failure) => state = AsyncValue.error(failure, StackTrace.current),
-        (items) {
-        state = AsyncValue.data([...state.value ?? [], ...items]);
-        _currentPage++;
-        },
-        );
-        }
-        }
-
-        final homeViewModelProvider = StateNotifierProvider<HomeViewModel, AsyncValue<List<HomeModel>>>(
-            (ref) => HomeViewModel(ref.read(getHomeItemsProvider)),
-            );
-
-            final getHomeItemsProvider = Provider<GetHomeItems>(
-                (ref) => GetHomeItems(ref.read(homeRepositoryProvider)),
-                );
+  @override
+  void onInit() {
+    super.onInit();
+    fetchData();
+  }
+}

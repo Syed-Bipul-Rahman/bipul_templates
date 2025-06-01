@@ -1,28 +1,21 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'home_model.dart';
+import 'package:logging/logging.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-abstract class HomeRemoteDataSource {
-Future<List<HomeModel>> getItems(int page, int limit);
+class HomeRemoteDataSource {
+  final DefaultCacheManager cacheManager;
+  final Logger _logger = Logger('HomeRemoteDataSource');
+
+  HomeRemoteDataSource({required this.cacheManager});
+
+  Future<String> fetchData(String url) async {
+    try {
+      final file = await cacheManager.getSingleFile(url);
+      final data = await file.readAsString();
+      _logger.info('Data fetched from $url');
+      return data;
+    } catch (e) {
+      _logger.severe('Error fetching data: $e');
+      rethrow;
     }
-
-    class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
-    final http.Client client;
-    static const String baseUrl = 'https://api.example.com/items';
-
-    HomeRemoteDataSourceImpl({required this.client});
-
-    @override
-    Future<List<HomeModel>> getItems(int page, int limit) async {
-        final response = await client.get(
-        Uri.parse('$baseUrl?page=$page&limit=$limit'),
-        );
-
-        if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-            return data.map((json) => HomeModel.fromJson(json)).toList();
-            } else {
-            throw Exception('Failed to load items');
-            }
-            }
-            }
+  }
+}

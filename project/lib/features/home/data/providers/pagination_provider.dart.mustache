@@ -1,41 +1,31 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'home_model.dart';
-import 'home_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
-class PaginationProvider extends StateNotifier<List<HomeModel>> {
-    final HomeRepository repository;
-    int _currentPage = 1;
-    final int _limit = 10;
-    bool _isLoading = false;
-    bool _hasMore = true;
+class PaginationProvider extends ChangeNotifier {
+  final Logger _logger = Logger('PaginationProvider');
+  int _currentPage = 1;
+  bool _isLoading = false;
+  bool _hasMore = true;
 
-    PaginationProvider(this.repository) : super([]);
+  int get currentPage => _currentPage;
+  bool get isLoading => _isLoading;
+  bool get hasMore => _hasMore;
 
-    Future<void> fetchItems({bool isRefresh = false}) async {
-        if (_isLoading || !_hasMore) return;
+  void setLoading(bool value) {
+    _isLoading = value;
+    _logger.info('Loading state changed to: $value');
+    notifyListeners();
+  }
 
-        _isLoading = true;
-        if (isRefresh) {
-        _currentPage = 1;
-        state = [];
-        }
+  void incrementPage() {
+    _currentPage++;
+    _logger.info('Page incremented to: $_currentPage');
+    notifyListeners();
+  }
 
-        try {
-        final newItems = await repository.getItems(_currentPage, _limit);
-        if (newItems.length < _limit) {
-        _hasMore = false;
-        }
-        state = [...state, ...newItems];
-        _currentPage++;
-        } catch (e) {
-        // Handle error (e.g., show a snackbar in the UI)
-        print('Error fetching items: $e');
-        } finally {
-        _isLoading = false;
-        }
-        }
-        }
-
-        final paginationProvider = StateNotifierProvider<PaginationProvider, List<HomeModel>>(
-            (ref) => PaginationProvider(ref.read(homeRepositoryProvider)),
-            );
+  void setHasMore(bool value) {
+    _hasMore = value;
+    _logger.info('Has more data: $value');
+    notifyListeners();
+  }
+}
