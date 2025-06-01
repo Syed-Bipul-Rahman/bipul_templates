@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../viewmodels/home_viewmodel.dart';
 import '../views/home_view.dart';
 
 class HomePage extends StatelessWidget {
@@ -8,7 +6,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(HomeViewModel());
+    // Injector should have already registered HomeViewModel
+    // Ensure dependencies are resolved via Get.find
     return const HomeView();
   }
 }
